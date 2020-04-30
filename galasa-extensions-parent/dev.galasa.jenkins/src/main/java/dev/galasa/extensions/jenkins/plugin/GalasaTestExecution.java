@@ -105,6 +105,10 @@ public class GalasaTestExecution extends Builder implements SimpleBuildStep {
     
     private final Gson        gson = GalasaGsonBuilder.build();
 
+    private String bootstrapURL = new String();
+    private String authURL = new String();
+    private String runsURL = new String();
+
     @DataBoundConstructor
     public GalasaTestExecution(String[] tests, String stream, String[] envProps) {
         this.tests = tests.clone();
@@ -190,7 +194,8 @@ public class GalasaTestExecution extends Builder implements SimpleBuildStep {
         logger.println("** Galasa Test Selection starting                        ***");
         logger.println("************************************************************");
         galasaConfiguration = GalasaConfiguration.get();
-        GalasaContext galasaContext = new GalasaContext(galasaConfiguration.getURL(), getCredentials());
+        this.constructEndpointURLs();
+        GalasaContext galasaContext = new GalasaContext(this.bootstrapURL, getCredentials());
 
         TestRun testRun = TestRun.getTestRun("jenkins");
 
@@ -199,7 +204,7 @@ public class GalasaTestExecution extends Builder implements SimpleBuildStep {
 
         // *** Retrieve the Galasa bootstrap properties
         try {
-            properties.putAll(getGalasaProperties(galasaConfiguration.getUrl(), getCredentials(), galasaContext));
+            properties.putAll(getGalasaProperties(getCredentials(), galasaContext));
         } catch (MissingClass e) {
             logger.println("Unable to access Bootstrap properties");
             return;
@@ -333,7 +338,7 @@ public class GalasaTestExecution extends Builder implements SimpleBuildStep {
         try {
             scheduleRequestString = gson.toJson(request);
 
-            HttpPost postRequest = new HttpPost(context.getGalasaURI() + "runs/" + this.uuid.toString());
+            HttpPost postRequest = new HttpPost(this.runsURL + "/" + this.uuid.toString());
             postRequest.addHeader("Accept", "application/json");
             postRequest.addHeader("Content-Type", "application/json");
             postRequest.setEntity(new StringEntity(scheduleRequestString));
@@ -378,7 +383,7 @@ public class GalasaTestExecution extends Builder implements SimpleBuildStep {
         String scheduleResponseString = null;
         ScheduleStatus scheduleStatus = null;
         try {
-            HttpGet getRequest = new HttpGet(context.getGalasaURI() + "runs/" + this.uuid.toString());
+            HttpGet getRequest = new HttpGet(this.runsURL+ "/" + this.uuid.toString());
             getRequest.addHeader("Accept", "application/json");
 
             scheduleResponseString = context.execute(getRequest, logger);
@@ -437,17 +442,17 @@ public class GalasaTestExecution extends Builder implements SimpleBuildStep {
         }
     }
 
-    private Properties getGalasaProperties(String host, StandardUsernamePasswordCredentials credentials,
+    private Properties getGalasaProperties(StandardUsernamePasswordCredentials credentials,
             GalasaContext context) throws IOException, InterruptedException, MissingClass {
         Properties configurationProperties = new Properties();
 
         if (this.jwt == null) {
             logger.println("Authenticating with Galasa auth Service");
-            authenticate(new URL(host + "auth"));
+            authenticate(new URL(this.authURL));
         }
         logger.println("Retrieving Galasa Bootstrap Properties");
 
-        HttpGet getRequest = new HttpGet(host + "bootstrap");
+        HttpGet getRequest = new HttpGet(this.bootstrapURL);
         String bootstrapResponse = context.execute(getRequest, logger);
         configurationProperties.load(new StringReader(bootstrapResponse));
         logger.println("Received Bootsrap properties:");
@@ -522,6 +527,14 @@ public class GalasaTestExecution extends Builder implements SimpleBuildStep {
             return testName;
         }
         return parts[1];
+    }
+
+    private void constructEndpointURLs(){
+        this.bootstrapURL = galasaConfiguration.getBootstrapURL();
+        String rootURL = this.bootstrapURL;
+        rootURL = rootURL.substring(0, rootURL.indexOf("/bootstrap"));
+        this.authURL = rootURL + "/auth";
+        this.runsURL = rootURL + "/runs";
     }
 
     @Symbol("galasa")

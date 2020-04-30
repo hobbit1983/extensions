@@ -29,7 +29,7 @@ import net.sf.json.JSONObject;
 @Extension
 public class GalasaConfiguration extends GlobalConfiguration {
 
-    private String url;
+    private String bootstrapURL;
     private String serverCredentials;
 
     public GalasaConfiguration() {
@@ -40,24 +40,25 @@ public class GalasaConfiguration extends GlobalConfiguration {
         return GlobalConfiguration.all().get(GalasaConfiguration.class);
     }
 
-    public String getUrl() {
-        return url;
+    public String getBootstrapURL() {
+        return bootstrapURL;
     }
 
     public String getServerCredentials() {
         return serverCredentials;
     }
 
-    public URL getURL() throws MalformedURLException, AbortException {
-        if (url == null) {
+    public URL getBootstrapURL() throws MalformedURLException, AbortException {
+        if (bootstrapURL == null) {
             throw new AbortException("The galasa bootstrap URL is missing in global settings");
         }
-        if(!url.endsWith("/bootstrap")){
+        if(!bootstrapURL.endsWith("/bootstrap")){
             throw new AbortException("The galasa bootstrap URL does not end in /bootstrap");
         }
 
-        return new URL(url);
+        return new URL(bootstrapURL);
     }
+    
 
     public void setUrl(String url) {
         this.url = url;
