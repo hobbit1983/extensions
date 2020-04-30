@@ -52,6 +52,9 @@ public class GalasaConfiguration extends GlobalConfiguration {
         if (url == null) {
             throw new AbortException("The galasa bootstrap URL is missing in global settings");
         }
+        if(!url.endsWith("/bootstrap")){
+            throw new AbortException("The galasa bootstrap URL does not end in /bootstrap");
+        }
 
         return new URL(url);
     }
