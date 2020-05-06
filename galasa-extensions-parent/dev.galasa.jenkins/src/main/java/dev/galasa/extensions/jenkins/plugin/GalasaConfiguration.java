@@ -40,10 +40,6 @@ public class GalasaConfiguration extends GlobalConfiguration {
         return GlobalConfiguration.all().get(GalasaConfiguration.class);
     }
 
-    public String getBootstrapURL() {
-        return bootstrapURL;
-    }
-
     public String getServerCredentials() {
         return serverCredentials;
     }
@@ -61,7 +57,7 @@ public class GalasaConfiguration extends GlobalConfiguration {
     
 
     public void setUrl(String url) {
-        this.url = url;
+        this.bootstrapURL = url;
         save();
     }
 

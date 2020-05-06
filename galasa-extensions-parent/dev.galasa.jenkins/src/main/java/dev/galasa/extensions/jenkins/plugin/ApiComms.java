@@ -62,14 +62,14 @@ public class ApiComms {
         this.logger = logger;
         this.run = run;
         this.galasaConfiguration = GalasaConfiguration.get();
-        this.galasaContext = new GalasaContext(galasaConfiguration.getURL(), getCredentials());
+        this.galasaContext = new GalasaContext(galasaConfiguration.getBootstrapURL(), getCredentials());
 
     }
     
     public Properties getGalasaProperties() throws IOException, InterruptedException, MissingClass {
         Properties configurationProperties = new Properties();
         
-        String host = galasaConfiguration.getUrl();
+        String host = galasaConfiguration.getBootstrapURL().toString();
         if (!host.endsWith("/")) {
             host += "/";
         }

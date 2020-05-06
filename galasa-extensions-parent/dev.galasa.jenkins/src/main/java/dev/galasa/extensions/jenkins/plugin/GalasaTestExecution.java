@@ -195,7 +195,7 @@ public class GalasaTestExecution extends Builder implements SimpleBuildStep {
         logger.println("************************************************************");
         galasaConfiguration = GalasaConfiguration.get();
         this.constructEndpointURLs();
-        GalasaContext galasaContext = new GalasaContext(this.bootstrapURL, getCredentials());
+        GalasaContext galasaContext = new GalasaContext(galasaConfiguration.getBootstrapURL(), getCredentials());
 
         TestRun testRun = TestRun.getTestRun("jenkins");
 
@@ -346,7 +346,7 @@ public class GalasaTestExecution extends Builder implements SimpleBuildStep {
             scheduleResponseString = context.execute(postRequest, logger);
             logger.println("Tests schedule endpoint: " + postRequest.getURI());
 
-        } catch (IOException | InterruptedException | MissingClass | URISyntaxException | JsonSyntaxException e) {
+        } catch (IOException | InterruptedException | MissingClass | JsonSyntaxException e) {
             logger.println("Failed to schedule runs '" + e.getMessage());
             logger.println("Schedule request:-");
             logger.println(scheduleRequestString);
@@ -529,8 +529,8 @@ public class GalasaTestExecution extends Builder implements SimpleBuildStep {
         return parts[1];
     }
 
-    private void constructEndpointURLs(){
-        this.bootstrapURL = galasaConfiguration.getBootstrapURL();
+    private void constructEndpointURLs() throws MalformedURLException, AbortException {
+        this.bootstrapURL = galasaConfiguration.getBootstrapURL().toString();
         String rootURL = this.bootstrapURL;
         rootURL = rootURL.substring(0, rootURL.indexOf("/bootstrap"));
         this.authURL = rootURL + "/auth";
